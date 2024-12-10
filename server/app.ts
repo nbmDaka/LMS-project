@@ -3,6 +3,7 @@ import express from "express";
 export const app = express();
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import {ErrorMiddleware} from "./middleware/error";
 
 //body parser
 app.use(express.json({limit: "50mb"}));
@@ -26,3 +27,5 @@ app.get("/test", (req: express.Request, res: express.Response, next: express.Nex
 app.all("*", (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const err = new Error(`Route ${req.originalUrl} not found`);
 })
+
+app.use(ErrorMiddleware);
