@@ -1,3 +1,5 @@
+import UserModel from "../models/user.model";
+
 require('dotenv').config();
 import express from 'express';
 import userModel, {IUser} from "../models/user.model";
@@ -9,25 +11,24 @@ import sendMail from "../utils/sendMail";
 import path from "path";
 
 
-
 //register user
 interface IRegistrationBody {
     name: string;
-    email:string;
-    password:string;
-    avatar?:string;
+    email: string;
+    password: string;
+    avatar?: string;
 }
 
-export const registrationUser = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const registrationUser = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-        const { name, email, password } = req.body;
+        const {name, email, password} = req.body;
 
         const isEmailExist = await userModel.findOne({email})
-        if(isEmailExist){
+        if (isEmailExist) {
             return next(new ErrorHandler("Email already exist", 400))
         }
 
-        const user:IRegistrationBody = {
+        const user: IRegistrationBody = {
             name,
             email,
             password,
@@ -52,26 +53,69 @@ export const registrationUser = CatchAsyncError(async(req: express.Request, res:
                 activationToken: activationToken.token
             })
 
-        } catch (error:any) {
+        } catch (error: any) {
             return next(new ErrorHandler(error.message, 400))
         }
 
     } catch (error: any) {
-        return next(new ErrorHandler(error.message,400));
+        return next(new ErrorHandler(error.message, 400));
     }
 });
 
 interface IActivationToken {
     token: string;
-    activationCode:string
+    activationCode: string
 }
 
 export const createActivationToken = (user: any): IActivationToken => {
     const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
     const token = jwt.sign({
-        user,activationCode
-    },process.env.ACTIVATION_SECRET as Secret, {expiresIn: "5m"});
+        user, activationCode
+    }, process.env.ACTIVATION_SECRET as Secret, {expiresIn: "15m"});
 
     return {token, activationCode};
 };
+
+// Activate user
+
+interface IActivationRequest {
+    activation_token: string;
+    activation_code: string;
+}
+
+export const activateUser = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+        const {activation_token, activation_code} = req.body as IActivationRequest
+
+        const newUser: { user: IUser; activationCode: string } = jwt.verify(
+            activation_token,
+            process.env.ACTIVATION_SECRET as string
+        ) as { user: IUser; activationCode: string };
+
+        if (newUser.activationCode !== activation_code) {
+            return next(new ErrorHandler("Invalid Activation Code", 400))
+        }
+
+        const {name, email, password} = newUser.user;
+
+        const existUser = await userModel.findOne({email});
+
+        if (existUser) {
+            return next(new ErrorHandler("User already exist", 400))
+        }
+
+        const user = await UserModel.create({
+            name,
+            email,
+            password
+        });
+
+        res.status(201).json({
+            success: true,
+        })
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+    }
+})
