@@ -4,10 +4,11 @@ import express from 'express';
 import userModel, {IUser} from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
-import jwt, {Secret} from "jsonwebtoken";
+import jwt, {JwtPayload, Secret} from "jsonwebtoken";
 import sendMail from "../utils/sendMail";
-import {sendToken} from "../utils/jwt";
+import {accessTokenOptions, refreshTokenOptions, sendToken} from "../utils/jwt";
 import {redis} from "../utils/redis";
+import {getUserById} from "../services/user.service";
 
 
 //register user
@@ -169,13 +170,78 @@ export const logoutUser = CatchAsyncError(async (req: express.Request, res: expr
     }
 });
 
-// validate user role
+//update access token
 
-export const authorizeRoles = (...roles: string[]) => {
-    return (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        if(!roles.includes(req.user?.role || '')) {
-            return next(new ErrorHandler(`Role: ${req.user?.role} is not allowed to access this resource`, 403));
-        }
-        next();
-    }
+export const updateAccessToken = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+   try {
+       const refresh_token = req.cookies.refresh_token as string;
+       const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload;
+
+       const message = 'Could not refresh token';
+
+       if(!decoded) {
+           return next(new ErrorHandler(message, 400));
+       }
+
+       const session = await redis.get(decoded.id as string);
+
+       if(!session) {
+           return next(new ErrorHandler(message, 400));
+       }
+
+       const user = JSON.parse(session);
+
+       const accessToken = jwt.sign({id: user._id}, process.env.ACCESS_TOKEN as string, {
+           expiresIn: "5m",
+       });
+
+       const refreshToken = jwt.sign({id: user._id}, process.env.REFRESH_TOKEN as string, {
+           expiresIn: "3d",
+       });
+
+       res.cookie("access_token", accessToken, accessTokenOptions);
+       res.cookie("refresh_token", refresh_token, refreshTokenOptions);
+
+       res.status(200).json({
+           status: "success",
+           accessToken
+       });
+
+   } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+   }
+});
+
+// get user info
+export const getUserInfo = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+   try {
+       const userId = req.user?._id as string;
+       await getUserById(userId, res)
+   } catch (error: any) {
+       return next(new ErrorHandler(error.message, 400));
+   }
+});
+
+interface ISocialAuthBody {
+    email: string;
+    name: string;
+    avatar: string;
 }
+
+//social auth
+
+export const socialAuth = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+   try {
+       const {email, name, avatar} = req.body as ISocialAuthBody;
+       const user = await userModel.findOne({email});
+       if(!user) {
+           const newUser = await userModel.create({email, name, avatar});
+           sendToken(newUser, 200, res);
+       } else {
+           sendToken(user, 200, res);
+       }
+
+   } catch (error: any) {
+       return next(new ErrorHandler(error.message, 400));
+   }
+});
