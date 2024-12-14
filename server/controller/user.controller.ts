@@ -1,15 +1,13 @@
 import UserModel from "../models/user.model";
-
 require('dotenv').config();
 import express from 'express';
 import userModel, {IUser} from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import jwt, {Secret} from "jsonwebtoken";
-import ejs from "ejs"
 import sendMail from "../utils/sendMail";
-import path from "path";
 import {sendToken} from "../utils/jwt";
+import {redis} from "../utils/redis";
 
 
 //register user
@@ -159,8 +157,25 @@ export const loginUser = CatchAsyncError(async (req: express.Request, res: expre
 export const logoutUser = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         res.cookie("access_token", "", {maxAge: 1});
+        res.cookie("refresh_token", "", {maxAge: 1});
+
+        const userId = req.user?._id as string;
+
+        redis.del(userId);
+
         res.status(200).json({success: true, message: "Logged out successfully"});
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
-})
+});
+
+// validate user role
+
+export const authorizeRoles = (...roles: string[]) => {
+    return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if(!roles.includes(req.user?.role || '')) {
+            return next(new ErrorHandler(`Role: ${req.user?.role} is not allowed to access this resource`, 403));
+        }
+        next();
+    }
+}
