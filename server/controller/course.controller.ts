@@ -85,7 +85,7 @@ export const getSingleCourse = CatchAsyncError(async(req: express.Request, res: 
         }
         else {
         const course = await courseModel.findById(req.params.id).select(
-            "-courseData.questions");
+            "-courseData.links -courseData.questions");
 
         await redis.set(courseId, JSON.stringify(course));
 
@@ -114,7 +114,7 @@ export const getAllCourses = CatchAsyncError(async(req: express.Request, res: ex
         } else {
 
             const courses = await courseModel.find().select(
-                "-courseData.questions");
+                "-courseData.links -courseData.questions");
 
             await redis.set("allCourses", JSON.stringify(courses));
 
@@ -126,4 +126,31 @@ export const getAllCourses = CatchAsyncError(async(req: express.Request, res: ex
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
+});
+
+// get course content  --- only for valid user
+export const getCourseByUser = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+   try {
+       const userCourseList = req.user?.courses;
+       const courseId = req.params.id
+
+       console.log(courseId);
+
+       const courseExists = userCourseList?.find((course: any) => course._id.toString() === courseId);
+
+       if(!courseExists) {
+           return next(new ErrorHandler("You are not eligible access to this course", 404))
+       }
+
+       const course = await courseModel.findById(courseId);
+       const content = course?.coursesData;
+
+       res.status(200).json({
+           success: true,
+           content
+       })
+
+   } catch (error: any) {
+       return next(new ErrorHandler(error.message, 500))
+   }
 });
