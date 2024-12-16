@@ -130,7 +130,7 @@ interface ILoginRequest {
 
 export const loginUser = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-        const {email, password} = req.body as ILoginRequest;
+        const {email, password}: ILoginRequest = req.body;
 
         if (!email || !password) {
             return next(new ErrorHandler("Please enter email and password", 400))

@@ -5,6 +5,7 @@ import cloudinary from "cloudinary";
 import {createCourse} from "../services/course.service";
 import {courseModel} from "../models/course.model";
 import {redis} from "../utils/redis";
+import mongoose from "mongoose";
 
 
 // upload course
@@ -153,4 +154,27 @@ export const getCourseByUser = CatchAsyncError(async(req: express.Request, res: 
    } catch (error: any) {
        return next(new ErrorHandler(error.message, 500))
    }
+});
+
+// Add question in course
+interface IAddQuestionData {
+    question: string;
+    courseId: string;
+    contentId: string;
+}
+
+export const addQuestion = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+        const {question, courseId, contentId }: IAddQuestionData = req.body;
+
+        if(!mongoose.Types.ObjectId.isValid(contentId)) {
+            return next(new ErrorHandler("Invalid content id", 400));
+        }
+
+        // const  courseContent
+        // 5:28:08, continue next time!
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 500))
+    }
 });
