@@ -166,13 +166,13 @@ interface IAddQuestionData {
 export const addQuestion = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         const {question, courseId, contentId }: IAddQuestionData = req.body;
+        const course = await courseModel.findById(courseId);
 
         if(!mongoose.Types.ObjectId.isValid(contentId)) {
             return next(new ErrorHandler("Invalid content id", 400));
         }
 
-        // const  courseContent
-        // 5:28:08, continue next time!
+        const  courseContent = course?.coursesData?.find((item: any) =>item._id.equals(contentId))
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500))
