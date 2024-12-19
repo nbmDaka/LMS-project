@@ -174,7 +174,7 @@ export const addQuestion = CatchAsyncError(async(req: express.Request, res: expr
 
         const  courseContent = course?.coursesData?.find((item: any) =>item._id.equals(contentId))
 
-        //changing something
+        //changing something thursday
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 500))
