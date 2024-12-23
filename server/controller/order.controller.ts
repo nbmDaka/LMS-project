@@ -76,6 +76,9 @@ export const createOrder = CatchAsyncError(async(req: Request, res: Response, ne
 
         newOrder(data, res, next);
 
+        // 6.41.08
+        //fixing mail sending error
+
 
     } catch (error: any) {
         throw new ErrorHandler(error.message, 500);
