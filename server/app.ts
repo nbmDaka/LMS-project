@@ -1,3 +1,5 @@
+import orderRouter from "./routes/order.route";
+
 require('dotenv').config();
 import express from "express";
 export const app = express();
@@ -18,9 +20,8 @@ app.use(cors({
     origin: process.env.ORIGIN,
 }));
 
-app.use("/api/v1", userRouter)
+app.use("/api/v1", userRouter, courseRoutes, orderRouter)
 
-app.use("/api/v1", courseRoutes)
 
 // testing api
 app.get("/test", (req: express.Request, res: express.Response, next: express.NextFunction) => {
