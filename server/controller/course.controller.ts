@@ -382,7 +382,7 @@ export const addReplyToReview = CatchAsyncError(async(req: express.Request, res:
         res.status(200).json({
             success: true,
             course
-        })
+        });
 
     } catch (error:any) {
         return next(new ErrorHandler(error.message, 500));
