@@ -76,11 +76,6 @@ export const createOrder = CatchAsyncError(async(req: Request, res: Response, ne
 
         newOrder(data, res, next);
 
-        // 6.41.08
-        //fixing mail sending error
-        // changing for github
-        // adding something
-        // this week was for work and university
 
 
     } catch (error: any) {
