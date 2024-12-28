@@ -15,11 +15,11 @@ export const createOrder = CatchAsyncError(async(req: Request, res: Response, ne
     try {
         const {courseId, payment_info} = req.body as IOrder;
 
-        const user  = await userModel.findById(req.user?._id);
-        console.log("Fucking user", req.user)
-        console.log("Fucking user 1 ", user)
+        const userId = req.user?._id as string;
 
-        const courseExistInUser =user?.courses.some((course:any) => course._id.toString() === courseId);
+        const user  = await userModel.findById(userId);
+
+        const courseExistInUser =user?.courses.some((course:any) => course.courseId.toString() === courseId);
 
         if(courseExistInUser) {
             return next(new ErrorHandler("You have already purchased this course", 400));
@@ -32,6 +32,7 @@ export const createOrder = CatchAsyncError(async(req: Request, res: Response, ne
         }
 
         const data: any = {
+            userId: userId,
             courseId: courseId,
             payment_info: payment_info
         }
@@ -73,6 +74,12 @@ export const createOrder = CatchAsyncError(async(req: Request, res: Response, ne
             title: "NEW_ORDER",
             message: `New order for ${course.name} has been placed`
         });
+
+        if(course.purchased) {
+            course.purchased += 1;
+        }
+
+        await course.save();
 
         newOrder(data, res, next);
 
