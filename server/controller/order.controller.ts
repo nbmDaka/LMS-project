@@ -1,4 +1,4 @@
-import {Response, NextFunction, Request} from 'express';
+import express, {Response, NextFunction, Request} from 'express';
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import orderModel, {IOrder} from "../models/orderModel";
@@ -8,7 +8,7 @@ import path from "path"
 import ejs from "ejs"
 import sendMail from "../utils/sendMail";
 import notificationModel from "../models/notificationModel";
-import {newOrder} from "../services/order.service";
+import {getAllOrdersService, newOrder} from "../services/order.service";
 
 
 export const createOrder = CatchAsyncError(async(req: Request, res: Response, next: NextFunction) => {
@@ -87,6 +87,16 @@ export const createOrder = CatchAsyncError(async(req: Request, res: Response, ne
 
     } catch (error: any) {
         throw new ErrorHandler(error.message, 500);
+    }
+});
+
+// get all orders only for admins
+
+export const getAllOrders = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+        await getAllOrdersService(res);
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
     }
 });
 

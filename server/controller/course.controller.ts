@@ -2,7 +2,7 @@ import express from "express";
 import { CatchAsyncError} from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from "cloudinary";
-import {createCourse} from "../services/course.service";
+import {createCourse, getAllCoursesService} from "../services/course.service";
 import {courseModel} from "../models/course.model";
 import {redis} from "../utils/redis";
 import mongoose from "mongoose";
@@ -10,6 +10,7 @@ import path from "path";
 import ejs from "ejs";
 import sendMail from "../utils/sendMail";
 import notificationModel from "../models/notificationModel";
+import {getAllUsersService} from "../services/user.service";
 
 
 // upload course
@@ -397,5 +398,15 @@ export const addReplyToReview = CatchAsyncError(async(req: express.Request, res:
 
     } catch (error:any) {
         return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+
+// get all courses
+export const getAllCoursesForAdmin = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+        await getAllCoursesService(res);
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
     }
 });

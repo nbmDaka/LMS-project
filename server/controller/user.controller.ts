@@ -7,7 +7,7 @@ import jwt, {JwtPayload, Secret} from "jsonwebtoken";
 import sendMail from "../utils/sendMail";
 import {accessTokenOptions, refreshTokenOptions, sendToken} from "../utils/jwt";
 import {redis} from "../utils/redis";
-import {getUserById} from "../services/user.service";
+import {getAllUsersService, getUserById} from "../services/user.service";
 import UserModel from "../models/user.model";
 import cloudinary from "cloudinary";
 
@@ -438,6 +438,15 @@ export const updateProfilePicture = CatchAsyncError(async (req: express.Request,
             success: true,
             user,
         });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+    }
+});
+
+//get all users
+export const getAllUsers = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+        await getAllUsersService(res);
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
