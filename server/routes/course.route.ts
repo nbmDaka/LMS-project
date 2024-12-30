@@ -1,7 +1,7 @@
 import express from "express";
 import {
     addAnswer,
-    addQuestion, addReplyToReview, addReview,
+    addQuestion, addReplyToReview, addReview, deleteCourse,
     editCourse,
     getAllCourses, getAllCoursesForAdmin,
     getCourseByUser,
@@ -22,5 +22,6 @@ courseRouter.put("/add-answer", isAuthenticated,  addAnswer);
 courseRouter.put("/add-review/:id", isAuthenticated,  addReview);
 courseRouter.put("/add-reply", isAuthenticated, authorizeRoles("admin"),  addReplyToReview);
 courseRouter.get("/get-courses-admin", isAuthenticated, authorizeRoles("admin"),  getAllCoursesForAdmin);
+courseRouter.delete("/delete-course", isAuthenticated, authorizeRoles("admin"),  deleteCourse);
 
 export default courseRouter;

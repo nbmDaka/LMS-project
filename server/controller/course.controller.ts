@@ -11,6 +11,7 @@ import ejs from "ejs";
 import sendMail from "../utils/sendMail";
 import notificationModel from "../models/notificationModel";
 import {getAllUsersService} from "../services/user.service";
+import userModel from "../models/user.model";
 
 
 // upload course
@@ -409,4 +410,22 @@ export const getAllCoursesForAdmin = CatchAsyncError(async (req: express.Request
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
+});
+
+// delete course
+export const deleteCourse = CatchAsyncError(async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const courseId = req.params.id;
+
+    const course = await courseModel.findById(courseId);
+
+    if(!course) {
+        return next(new ErrorHandler("Course not found", 400));
+    }
+
+    await course.deleteOne({courseId});
+
+    res.status(200).json({
+        success: true,
+        message: "Course Deleted successfully",
+    })
 });
