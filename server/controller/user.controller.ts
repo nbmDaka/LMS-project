@@ -7,7 +7,7 @@ import jwt, {JwtPayload, Secret} from "jsonwebtoken";
 import sendMail from "../utils/sendMail";
 import {accessTokenOptions, refreshTokenOptions, sendToken} from "../utils/jwt";
 import {redis} from "../utils/redis";
-import {getAllUsersService, getUserById} from "../services/user.service";
+import {getAllUsersService, getUserById, updateUserRoleService} from "../services/user.service";
 import UserModel from "../models/user.model";
 import cloudinary from "cloudinary";
 
@@ -450,4 +450,15 @@ export const getAllUsers = CatchAsyncError(async (req: express.Request, res: exp
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
+});
+
+// update user role --- only admin
+
+export const updateUserRole = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+   try {
+       const {id, role} = req.body;
+       await updateUserRoleService(res, id, role)
+   } catch (error: any) {
+       return next(new ErrorHandler(error.message, 400));
+   }
 });
