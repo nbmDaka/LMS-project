@@ -12,6 +12,7 @@ import notificationRoute from "./routes/notification.route";
 import notificationRouter from "./routes/notification.route";
 import courseRouter from "./routes/course.route";
 import analyticRouter from "./routes/analytics.route";
+import layoutRouter from "./routes/layout.route";
 
 //body parser
 app.use(express.json({limit: "50mb"}));
@@ -24,7 +25,7 @@ app.use(cors({
     origin: process.env.ORIGIN,
 }));
 
-app.use("/api/v1", userRouter, courseRouter, orderRouter, notificationRouter, analyticRouter)
+app.use("/api/v1", userRouter, courseRouter, orderRouter, notificationRouter, analyticRouter, layoutRouter)
 
 
 // testing api

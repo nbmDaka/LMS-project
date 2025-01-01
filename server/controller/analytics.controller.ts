@@ -19,7 +19,7 @@ export const getUserAnalytics = CatchAsyncError(async(req: express.Request, res:
        })
 
    } catch (error: any) {
-       next(new ErrorHandler(error.message, 500))
+       return next(new ErrorHandler(error.message, 500))
    }
 });
 
@@ -35,7 +35,7 @@ export const getCourseAnalytics = CatchAsyncError(async(req: express.Request, re
        })
 
    } catch (error: any) {
-       next(new ErrorHandler(error.message, 500))
+       return next(new ErrorHandler(error.message, 500))
    }
 });
 
@@ -51,6 +51,6 @@ export const getOrderAnalytics = CatchAsyncError(async(req: express.Request, res
        })
 
    } catch (error: any) {
-       next(new ErrorHandler(error.message, 500))
+       return next(new ErrorHandler(error.message, 500))
    }
 });
