@@ -94,11 +94,16 @@ export const editLayout = CatchAsyncError(async(req: express.Request, res: expre
         const {type} = req.body;
 
         if(type === "Banner") {
+            const BannerData: any = await LayoutModel.findOne({ type: "Banner" })
             const {image,title, subtitle} = req.body;
+            if(BannerData){
+                await cloudinary.v2.uploader.destroy(BannerData.image.public_id);
+            }
             const myCloud = await cloudinary.v2.uploader.upload(image, {
                 folder: "layout"
             });
             const banner = {
+                type: "Banner",
                 image: {
                     public_id: myCloud.public_id,
                     url: myCloud.secure_url,
@@ -106,11 +111,12 @@ export const editLayout = CatchAsyncError(async(req: express.Request, res: expre
                 title,
                 subtitle,
             }
-            await layoutModel.create(banner)
+            await layoutModel.findByIdAndUpdate(BannerData._id,{banner})
         }
 
         if(type === "FAQ") {
             const {faq} = req.body;
+            const faqItem = await layoutModel.findOne({type: "FAQ"})
             const faqItems = await Promise.all(
                 faq.map(async (item: any) => {
                     return {
@@ -119,11 +125,13 @@ export const editLayout = CatchAsyncError(async(req: express.Request, res: expre
                     }
                 })
             )
-            await LayoutModel.create({type: "FAQ", faq: faqItems})
+            await LayoutModel.findByIdAndUpdate(faqItem?._id,{type: "FAQ", faq: faqItems})
         }
 
         if(type === "Categories") {
             const {categories} = req.body;
+            const categoriesItem = await layoutModel.findOne({type: "Categories"})
+
             const categoryItems = await Promise.all(
                 categories.map(async (item: any) => {
                     return {
@@ -131,16 +139,31 @@ export const editLayout = CatchAsyncError(async(req: express.Request, res: expre
                     }
                 })
             )
-            await LayoutModel.create({type: "Categories", categories: categoryItems})
+
+            console.log(categoryItems)
+            await LayoutModel.create(categoriesItem?._id,{type: "Categories", categories: categoryItems})
         }
 
         res.status(200).json({
             success: true,
-            message: "Successfully created layout",
+            message: "Successfully updated layout",
         })
     } catch(error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
 })
 
-//changing
+//get layout by type
+export const getLayoutByType = CatchAsyncError(async(req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+        const {type} = req.body
+        const layout = await layoutModel.findOne({type});
+        res.status(200).json({
+            success: true,
+            layout
+        })
+
+    } catch(error: any) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+})
