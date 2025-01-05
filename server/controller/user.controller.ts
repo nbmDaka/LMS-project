@@ -252,7 +252,7 @@ export const updateAccessToken = CatchAsyncError(async (req: express.Request, re
         // Fetch session from Redis
         const session = await redis.get(decoded.id as string);
         if (!session) {
-            return next(new ErrorHandler("Session not found. Please log in again.", 401));
+            return next(new ErrorHandler("Session not found. Please log in again", 401));
         }
 
         // Session and refresh token are valid; generate new tokens
@@ -272,6 +272,7 @@ export const updateAccessToken = CatchAsyncError(async (req: express.Request, re
         // Send updated tokens to the client
         res.cookie("access_token", accessToken, accessTokenOptions);
         res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
 
         res.status(200).json({
             status: "success",

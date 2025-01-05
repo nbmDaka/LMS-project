@@ -15,7 +15,7 @@ export const isAuthenticated = CatchAsyncError(async(req: express.Request, res: 
    const decoded = jwt.verify(access_token, process.env.ACCESS_TOKEN as string) as JwtPayload
 
     if(!decoded) {
-        return next(new ErrorHandler("Access token is not valid", 400))
+        return next(new ErrorHandler("Please login to access this resource", 400))
     }
 
     const user = await redis.get(decoded.id)

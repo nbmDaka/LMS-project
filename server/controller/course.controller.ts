@@ -94,7 +94,7 @@ export const getSingleCourse = CatchAsyncError(async(req: express.Request, res: 
         const course = await courseModel.findById(req.params.id).select(
             "-courseData.links -courseData.questions");
 
-        await redis.set(courseId, JSON.stringify(course));
+        await redis.set(courseId, JSON.stringify(course), "EX", 604800);
 
         res.status(200).json({
             success: true,
